@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BioNexus — Unified Bioinformatics Platform</title>
+  <meta name="description" content="All-in-one bioinformatics research hub: NCBI, EMBL-EBI, DDBJ, UCSC, BLAST, UniProt, PDB, AlphaFold, STRING, KEGG, Reactome, Galaxy, and AI-powered analysis." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<canvas id="bgCanvas" class="bg-canvas"></canvas>
+
+<!-- ═══════════════════════════════════════════
+     TOP NAVBAR
+══════════════════════════════════════════════ -->
+<nav class="navbar" id="navbar">
+  <!-- Hamburger button — far left -->
+  <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleDrawer()" title="Menu" aria-label="Open navigation menu">
+    <span class="hb-line"></span>
+    <span class="hb-line"></span>
+    <span class="hb-line"></span>
+  </button>
+
+  <!-- Back Button + Breadcrumb -->
+  <div class="nav-back-wrap" id="navBackWrap">
+    <button class="nav-back-btn" id="navBackBtn" onclick="navigateBack()" title="Go back" aria-label="Go back">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="nav-back-label">Back</span>
+    </button>
+    <div class="nav-breadcrumb" id="navBreadcrumb"></div>
+  </div>
+
+  <!-- Brand -->
+  <div class="nav-brand" onclick="openToolFromDrawer('dashboard',null)" style="cursor:pointer;display:flex;align-items:center;gap:10px;text-decoration:none">
+    <div class="brand-logo">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="12" stroke="url(#ng1)" stroke-width="1.5"/>
+        <path d="M7 11c0 0 1.5-1.5 3 0s3-1.5 4.5 0S18 10 19.5 11" stroke="url(#ng1)" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="M7 17c0 0 1.5-1.5 3 0s3-1.5 4.5 0S18 16 19.5 17" stroke="url(#ng2)" stroke-width="1.5" stroke-linecap="round"/>
+        <defs>
+          <linearGradient id="ng1" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#64ffda"/><stop offset="100%" stop-color="#00b4d8"/></linearGradient>
+          <linearGradient id="ng2" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#c77dff"/><stop offset="100%" stop-color="#e040fb"/></linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <span class="brand-name">BioNexus</span>
+    <span class="brand-version">v2.0</span>
+  </div>
+
+  <!-- Global search — centre -->
+  <div class="nav-center">
+    <div class="nav-search-wrap" style="position:relative">
+      <span class="nav-search-icon">⌕</span>
+      <input id="globalSearchNav" class="nav-search-input" placeholder="Search databases, tools, settings… (Ctrl+K)" autocomplete="off" oninput="navSearchFilter(this.value)" onfocus="showNavResults()" />
+      <span class="nav-search-kbd">Ctrl+K</span>
+      <!-- Live dropdown -->
+      <div class="nav-search-dropdown" id="navSearchDropdown"></div>
+    </div>
+  </div>
+
+  <!-- Right controls -->
+  <div class="nav-right">
+    <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle dark/light mode" aria-label="Toggle theme">
+      <div class="toggle-track"><span class="toggle-icon">🌙</span><span class="toggle-icon">☀️</span></div>
+      <div class="toggle-thumb"></div>
+    </button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     SIDE DRAWER
+══════════════════════════════════════════ -->
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer()"></div>
+<aside class="side-drawer" id="sideDrawer">
+
+  <!-- Drawer Header -->
+  <div class="drawer-header">
+    <div class="drawer-brand">
+      <div class="drawer-brand-icon">🧬</div>
+      <div>
+        <div class="drawer-brand-name">BioNexus</div>
+        <div class="drawer-brand-sub">Bioinformatics Platform</div>
+      </div>
+    </div>
+    <button class="drawer-close-btn" onclick="closeDrawer()" title="Close">✕</button>
+  </div>
+
+  <!-- Drawer Nav Body -->
+  <nav class="drawer-nav">
+
+    <!-- Home -->
+    <button class="dnav-item" id="dnav-dashboard" onclick="openToolFromDrawer('dashboard',null)">
+      <span class="dnav-icon">🏠</span>
+      <span class="dnav-label">Dashboard</span>
+    </button>
+
+    <div class="dnav-divider"></div>
+
+    <!-- ── DATABASES ────────────────────── -->
+    <div class="dnav-group" id="dng-databases">
+      <button class="dnav-group-btn" onclick="toggleDnavGroup('databases')" id="dng-btn-databases">
+        <span class="dnav-icon">📦</span>
+        <span class="dnav-label">Databases</span>
+        <span class="dnav-count-badge">10</span>
+        <span class="dnav-chevron" id="dnav-chevron-databases">›</span>
+      </button>
+      <div class="dnav-group-list" id="dng-list-databases">
+        <div class="dnav-sub-inner">
+          <div class="dnav-sub-section">Nucleotide &amp; Gene</div>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('databases','ncbi')"><span>🌐</span> NCBI <span class="dsi-badge db">DB</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('databases','ebi')"><span>🧬</span> EMBL-EBI <span class="dsi-badge db">DB</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('databases','ddbj')"><span>🗄️</span> DDBJ <span class="dsi-badge db">DB</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('databases','ucsc')"><span>🔭</span> UCSC Genome Browser <span class="dsi-badge db">DB</span></button>
+          <div class="dnav-sub-section">Protein &amp; Structure</div>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('proteomics','uniprot')"><span>🧬</span> UniProt <span class="dsi-badge db">DB</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('proteomics','pdb')"><span>🔬</span> RCSB PDB <span class="dsi-badge db">DB</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('proteomics','alphafold')"><span>🤖</span> AlphaFold Database <span class="dsi-badge db">DB</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('proteomics','string')"><span>🕸️</span> STRING Network <span class="dsi-badge db">DB</span></button>
+          <div class="dnav-sub-section">Pathways</div>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('pathways','kegg')"><span>🗺️</span> KEGG <span class="dsi-badge db">DB</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('pathways','reactome')"><span>⚗️</span> Reactome <span class="dsi-badge db">DB</span></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TOOLS ───────────────────────── -->
+    <div class="dnav-group" id="dng-tools">
+      <button class="dnav-group-btn" onclick="toggleDnavGroup('tools')" id="dng-btn-tools">
+        <span class="dnav-icon">⚙️</span>
+        <span class="dnav-label">Tools</span>
+        <span class="dnav-count-badge">21</span>
+        <span class="dnav-chevron" id="dnav-chevron-tools">›</span>
+      </button>
+      <div class="dnav-group-list" id="dng-list-tools">
+        <div class="dnav-sub-inner">
+          <div class="dnav-sub-section">Sequence Alignment</div>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('alignment','blast')"><span>🔍</span> BLAST <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('alignment','clustal')"><span>🧩</span> Clustal Omega <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('alignment','bowtie')"><span>🗺️</span> Bowtie2 / BWA <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('alignment','minimap')"><span>📍</span> Minimap2 <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('alignment','pairwise')"><span>⚖️</span> Pairwise Aligner (NW/SW) <span class="dsi-badge bi">Built-in</span></button>
+          <div class="dnav-sub-section">NGS &amp; Genomics</div>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('ngs','fastqc')"><span>🔬</span> FastQC <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('ngs','gatk')"><span>🎯</span> GATK <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('ngs','deepvariant')"><span>🤖</span> DeepVariant <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('ngs','samtools')"><span>🔧</span> Samtools / bedtools <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('ngs','igv')"><span>🖥️</span> IGV Genome Viewer <span class="dsi-badge sw">SW</span></button>
+          <div class="dnav-sub-section">Transcriptomics (RNA-Seq)</div>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('transcriptomics','hisat2')"><span>🗺️</span> HISAT2 / STAR <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('transcriptomics','featurecounts')"><span>📈</span> FeatureCounts / Salmon <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('transcriptomics','deseq2')"><span>📉</span> DESeq2 / EdgeR <span class="dsi-badge sw">SW</span></button>
+          <div class="dnav-sub-section">Phylogenetics</div>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('phylogenetics','mega')"><span>🌲</span> MEGA / Tree Builder <span class="dsi-badge bi">Built-in</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('phylogenetics','phyml')"><span>🔬</span> PhyML / RAxML <span class="dsi-badge sw">SW</span></button>
+          <div class="dnav-sub-section">Pathways &amp; Systems</div>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('pathways','cytoscape')"><span>🕸️</span> Cytoscape <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('pathways','qiime')"><span>🦠</span> QIIME 2 <span class="dsi-badge sw">SW</span></button>
+          <div class="dnav-sub-section">Workflow Management</div>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('workflows','galaxy')"><span>🌌</span> Galaxy Platform <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('workflows','nextflow')"><span>🔄</span> Nextflow / Snakemake <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('workflows','bioconductor')"><span>📦</span> Bioconductor <span class="dsi-badge sw">SW</span></button>
+          <button class="dnav-sub-item" onclick="openToolFromDrawer('workflows','bioconda')"><span>🐍</span> Bioconda <span class="dsi-badge sw">SW</span></button>
+        </div>
+      </div>
+    </div>
+
+  </nav>
+</aside>
+
+<!-- ══════════════════════════════════════════
+     MAIN APPLICATION
+══════════════════════════════════════════ -->
+<main class="app-main" id="appMain">
+  <div class="content-area">
+
+    <!-- ═══════════════ DASHBOARD (Default) ═════════════════ -->
+    <div class="cat-panel active" id="panel-dashboard">
+      <div class="dash-pro">
+
+        <!-- LEFT: Text content -->
+        <div class="dash-pro-left">
+
+          <!-- Badge -->
+          <div class="dash-pro-badge">
+            <span class="dpb-dot"></span>
+            <span>Unified Bioinformatics Research Platform</span>
+          </div>
+
+          <!-- Main Headline -->
+          <h1 class="dash-pro-headline">
+            <span class="dph-line dph-line-1">The Complete</span>
+            <span class="dph-line dph-line-2">
+              <span class="dph-shimmer">Bioinformatics</span>
+            </span>
+            <span class="dph-line dph-line-3">Platform</span>
+          </h1>
+
+          <!-- Cycling subtitle -->
+          <div class="dash-pro-cycle-wrap">
+            <span class="dash-pro-cycle-prefix">Access </span>
+            <span class="dash-pro-cycle" id="dashCycleText">NCBI databases</span>
+          </div>
+
+          <!-- Divider line -->
+          <div class="dash-pro-divider"></div>
+
+          <!-- Description -->
+          <p class="dash-pro-desc">
+            Search, analyze, and visualize biological data across the world's
+            leading databases and bioinformatics software tools — all from a
+            single, secure, unified interface.
+          </p>
+
+          <!-- Launch Button -->
+          <div class="dash-pro-actions">
+            <button class="dash-pro-launch-btn" id="dashLaunchBtn" onclick="showDashSearch()">
+              <span class="dplb-icon">⚡</span>
+              <span>Launch Platform</span>
+              <span class="dplb-arrow">→</span>
+            </button>
+            <button class="dash-pro-menu-btn" onclick="openDrawer()">
+              <span>☰</span>
+              <span>Browse Tools</span>
+            </button>
+          </div>
+
+          <!-- Universal Search Box -->
+          <div class="dash-search-box" id="dashSearchBox">
+            <div class="dsb-inner">
+              <span class="dsb-icon">🔍</span>
+              <input
+                type="text"
+                class="dsb-input"
+                id="dashSearchInput"
+                placeholder="Search databases &amp; tools — BRCA1, BLAST, KEGG, UniProt…"
+                oninput="dashUniversalSearch(this.value)"
+                onkeydown="if(event.key==='Escape') hideDashSearch()"
+                autocomplete="off"
+              />
+              <button class="dsb-close" onclick="hideDashSearch()" title="Close">✕</button>
+            </div>
+            <div class="dsb-results" id="dashSearchResults"></div>
+            <div class="dsb-hint">
+              Type to search all 31 databases &amp; tools · Click to open · <kbd>Esc</kbd> to close
+            </div>
+          </div>
+
+          <!-- Stat counters -->
+          <div class="dash-pro-stats">
+            <div class="dps-item">
+              <div class="dps-num" data-target="10">0</div>
+              <div class="dps-label">Databases</div>
+            </div>
+            <div class="dps-sep"></div>
+            <div class="dps-item">
+              <div class="dps-num" data-target="21">0</div>
+              <div class="dps-label">Software Tools</div>
+            </div>
+            <div class="dps-sep"></div>
+            <div class="dps-item">
+              <div class="dps-num" data-target="8">0</div>
+              <div class="dps-label">Categories</div>
+            </div>
+            <div class="dps-sep"></div>
+            <div class="dps-item">
+              <div class="dps-num">100%</div>
+              <div class="dps-label">Secure</div>
+            </div>
+          </div>
+
+          <!-- Menu hint -->
+          <p class="dash-pro-hint">
+            Use <strong>☰ menu</strong> top-left to browse
+            <span class="dash-pro-hint-db">Databases</span> &amp;
+            <span class="dash-pro-hint-sw">Tools</span>
+            · Use search bar top-right to find anything
+          </p>
+        </div>
+
+        <!-- RIGHT: Animated DNA Helix -->
+        <div class="dash-pro-right">
+          <div class="dash-dna-wrap">
+            <div class="dash-dna-glow"></div>
+            <canvas id="heroCanvas" class="dash-dna-canvas" width="460" height="520"></canvas>
+            <div class="dash-dna-labels">
+              <div class="ddl-tag ddl-top">Double Helix</div>
+              <div class="ddl-tag ddl-mid">Base Pairs</div>
+              <div class="ddl-tag ddl-bot">B-DNA Structure</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /dash-pro -->
+    </div><!-- /panel-dashboard -->
+
+    <div class="cat-panel active" id="panel-databases">
+      <div class="panel-header">
+        <div class="panel-title-row">
+          <span class="panel-icon">🌐</span>
+          <div>
+            <h2 class="panel-title">Primary Bioinformatics Portals &amp; Major Databases</h2>
+            <p class="panel-sub">Search across the world's largest biological databases simultaneously</p>
+          </div>
+        </div>
+        <div class="db-type-legend">
+          <span class="legend-item db-type">📦 Database</span>
+          <span class="legend-item sw-type">⚙️ Software/Tool</span>
+        </div>
+      </div>
+
+      <div class="tool-tabs">
+        <button class="tool-tab active" onclick="switchTool('databases','ncbi',this)">
+          <span class="tt-badge db-badge">DB</span>NCBI
+        </button>
+        <button class="tool-tab" onclick="switchTool('databases','ebi',this)">
+          <span class="tt-badge db-badge">DB</span>EMBL-EBI
+        </button>
+        <button class="tool-tab" onclick="switchTool('databases','ddbj',this)">
+          <span class="tt-badge db-badge">DB</span>DDBJ
+        </button>
+        <button class="tool-tab" onclick="switchTool('databases','ucsc',this)">
+          <span class="tt-badge db-badge">DB</span>UCSC
+        </button>
+      </div>
+
+      <!-- NCBI Panel -->
+      <div class="tool-panel active" id="tool-databases-ncbi">
+        <div class="tool-info-bar">
+          <div class="tool-info-left">
+            <span class="tool-badge-large db-badge">📦 Database</span>
+            <div>
+              <h3 class="tool-name">NCBI — National Center for Biotechnology Information</h3>
+              <p class="tool-desc">USA's premier bioinformatics resource: Gene, Nucleotide, Protein, SRA, PubMed, Taxonomy, and more.</p>
+            </div>
+          </div>
+          <a href="https://www.ncbi.nlm.nih.gov/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">ncbi.nlm.nih.gov ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="search-row">
+            <input id="ncbiQuery" class="si" placeholder="e.g. BRCA1, insulin, COVID-19 spike protein..." />
+            <select id="ncbiDb" class="ss">
+              <option value="gene">Gene</option>
+              <option value="nucleotide">Nucleotide (DNA/RNA)</option>
+              <option value="protein">Protein</option>
+              <option value="pubmed">PubMed (Literature)</option>
+              <option value="pmc">PMC (Full-text Articles)</option>
+              <option value="clinvar">ClinVar (Clinical Variants)</option>
+              <option value="snp">dbSNP (Short Variations)</option>
+              <option value="structure">Structure (3D)</option>
+              <option value="genome">Genome</option>
+              <option value="assembly">Assembly</option>
+              <option value="sra">SRA (Sequence Read Archive)</option>
+              <option value="biosample">BioSample</option>
+              <option value="bioproject">BioProject</option>
+              <option value="taxonomy">Taxonomy</option>
+              <option value="omim">OMIM (Genetic Disorders)</option>
+            </select>
+            <select id="ncbiOrganism" class="ss">
+              <option value="">All Organisms</option>
+              <option value="Homo sapiens[Organism]">Human</option>
+              <option value="Mus musculus[Organism]">Mouse</option>
+              <option value="Arabidopsis thaliana[Organism]">Arabidopsis</option>
+              <option value="Escherichia coli[Organism]">E. coli</option>
+            </select>
+            <button class="btn-search" onclick="searchNCBI()">🔍 Search NCBI</button>
+          </div>
+          <div class="quick-chips">
+            <span>Try:</span>
+            <button class="chip" onclick="quickNCBI('BRCA1','gene')">BRCA1</button>
+            <button class="chip" onclick="quickNCBI('TP53','gene')">TP53</button>
+            <button class="chip" onclick="quickNCBI('insulin','protein')">Insulin</button>
+            <button class="chip" onclick="quickNCBI('COVID-19','nucleotide')">COVID-19</button>
+            <button class="chip" onclick="quickNCBI('hemoglobin','gene')">Hemoglobin</button>
+          </div>
+        </div>
+        <div class="results-area" id="results-ncbi"></div>
+      </div>
+
+      <!-- EMBL-EBI Panel -->
+      <div class="tool-panel" id="tool-databases-ebi">
+        <div class="tool-info-bar">
+          <div class="tool-info-left">
+            <span class="tool-badge-large db-badge">📦 Database</span>
+            <div>
+              <h3 class="tool-name">EMBL-EBI — European Bioinformatics Institute</h3>
+              <p class="tool-desc">Europe's hub for biological data: ENA, InterPro, ChEMBL, Ensembl, AlphaFold, UniProt, and more.</p>
+            </div>
+          </div>
+          <a href="https://www.ebi.ac.uk/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">ebi.ac.uk ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="search-row">
+            <input id="ebiQuery" class="si" placeholder="e.g. insulin, kinase, EGFR..." />
+            <select id="ebiSource" class="ss">
+              <option value="ena">ENA (Sequences)</option>
+              <option value="interpro">InterPro (Protein Families)</option>
+            </select>
+            <button class="btn-search" onclick="searchEBI()">🔍 Search EBI</button>
+          </div>
+          <div class="quick-chips">
+            <span>Try:</span>
+            <button class="chip" onclick="quickEBI('kinase','interpro')">Kinase Domains</button>
+            <button class="chip" onclick="quickEBI('SARS-CoV-2','ena')">SARS-CoV-2</button>
+            <button class="chip" onclick="quickEBI('hemoglobin','ena')">Hemoglobin</button>
+          </div>
+        </div>
+        <div class="results-area" id="results-ebi"></div>
+      </div>
+
+      <!-- DDBJ Panel -->
+      <div class="tool-panel" id="tool-databases-ddbj">
+        <div class="tool-info-bar">
+          <div class="tool-info-left">
+            <span class="tool-badge-large db-badge">📦 Database</span>
+            <div>
+              <h3 class="tool-name">DDBJ — DNA Data Bank of Japan</h3>
+              <p class="tool-desc">Asia-Pacific partner of INSDC. Shares data with NCBI GenBank and EMBL-EBI ENA.</p>
+            </div>
+          </div>
+          <a href="https://www.ddbj.nig.ac.jp/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">ddbj.nig.ac.jp ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="search-row">
+            <input id="ddbjQuery" class="si" placeholder="e.g. cytochrome c, 16S rRNA, plastid..." />
+            <button class="btn-search" onclick="searchDDBJ()">🔍 Search DDBJ</button>
+          </div>
+          <div class="quick-chips">
+            <span>Try:</span>
+            <button class="chip" onclick="quickDDBJ('16S rRNA')">16S rRNA</button>
+            <button class="chip" onclick="quickDDBJ('cytochrome c')">Cytochrome c</button>
+            <button class="chip" onclick="quickDDBJ('chloroplast')">Chloroplast</button>
+          </div>
+        </div>
+        <div class="results-area" id="results-ddbj"></div>
+      </div>
+
+      <!-- UCSC Panel -->
+      <div class="tool-panel" id="tool-databases-ucsc">
+        <div class="tool-info-bar">
+          <div class="tool-info-left">
+            <span class="tool-badge-large db-badge">📦 Database</span>
+            <div>
+              <h3 class="tool-name">UCSC Genome Browser</h3>
+              <p class="tool-desc">UC Santa Cruz genomic annotations, comparative genomics tracks, and genome browser for 100+ organisms.</p>
+            </div>
+          </div>
+          <a href="https://genome.ucsc.edu/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">genome.ucsc.edu ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="search-row">
+            <input id="ucscQuery" class="si" placeholder="e.g. BRCA1, TP53, chr17:43044295-43125483..." />
+            <select id="ucscGenome" class="ss">
+              <option value="hg38">Human (hg38)</option>
+              <option value="hg19">Human (hg19)</option>
+              <option value="mm39">Mouse (mm39)</option>
+              <option value="dm6">Drosophila (dm6)</option>
+              <option value="ce11">C. elegans (ce11)</option>
+              <option value="danRer11">Zebrafish (danRer11)</option>
+            </select>
+            <button class="btn-search" onclick="searchUCSC()">🔍 Search UCSC</button>
+          </div>
+          <div class="quick-chips">
+            <span>Try:</span>
+            <button class="chip" onclick="quickUCSC('BRCA1')">BRCA1</button>
+            <button class="chip" onclick="quickUCSC('TP53')">TP53</button>
+            <button class="chip" onclick="quickUCSC('EGFR')">EGFR</button>
+          </div>
+        </div>
+        <div class="results-area" id="results-ucsc">
+          <div class="ucsc-embed-section">
+            <h4 style="margin-bottom:12px;color:var(--text-secondary)">Embedded UCSC Genome Browser</h4>
+            <div class="iframe-wrap">
+              <iframe id="ucscFrame" src="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38&hideTracks=1&knownGene=pack&position=chr17:43044295-43125483" title="UCSC Genome Browser" class="genome-iframe" loading="lazy"></iframe>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         CAT 2: SEQUENCE ALIGNMENT
+    ═══════════════════════════════════ -->
+    <div class="cat-panel" id="panel-alignment">
+      <div class="panel-header">
+        <div class="panel-title-row">
+          <span class="panel-icon">🔍</span>
+          <div>
+            <h2 class="panel-title">Sequence Alignment &amp; Database Searching</h2>
+            <p class="panel-sub">Submit real alignment jobs to NCBI BLAST, EBI Clustal Omega, and Galaxy-hosted tools</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-tabs">
+        <button class="tool-tab active" onclick="switchTool('alignment','blast',this)">
+          <span class="tt-badge sw-badge">⚙️</span>BLAST
+        </button>
+        <button class="tool-tab" onclick="switchTool('alignment','clustal',this)">
+          <span class="tt-badge sw-badge">⚙️</span>Clustal Omega
+        </button>
+        <button class="tool-tab" onclick="switchTool('alignment','bowtie',this)">
+          <span class="tt-badge sw-badge">⚙️</span>Bowtie2 / BWA
+        </button>
+        <button class="tool-tab" onclick="switchTool('alignment','minimap',this)">
+          <span class="tt-badge sw-badge">⚙️</span>Minimap2
+        </button>
+        <button class="tool-tab" onclick="switchTool('alignment','pairwise',this)">
+          <span class="tt-badge sw-badge">⚙️</span>Pairwise Aligner
+        </button>
+      </div>
+
+      <!-- BLAST -->
+      <div class="tool-panel active" id="tool-alignment-blast">
+        <div class="tool-info-bar">
+          <div class="tool-info-left">
+            <span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div>
+              <h3 class="tool-name">BLAST — Basic Local Alignment Search Tool (NCBI)</h3>
+              <p class="tool-desc">Find regions of similarity between sequences. Compares query to GenBank, RefSeq, and more. Real-time job submission via NCBI API.</p>
+            </div>
+          </div>
+          <a href="https://blast.ncbi.nlm.nih.gov/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">NCBI BLAST ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="form-grid">
+            <div class="form-col">
+              <label class="form-label">Query Sequence (FASTA or raw)</label>
+              <textarea id="blastSeq" class="seq-ta" rows="6" placeholder=">My_sequence
+ATGCGATCGATCGATCGATCGATCGATCGATCGATCGATCGAT
+CGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGA"></textarea>
+            </div>
+            <div class="form-col">
+              <label class="form-label">Program</label>
+              <select id="blastProgram" class="ss" onchange="updateBlastDb()">
+                <option value="blastn">blastn — nucleotide vs nucleotide</option>
+                <option value="blastp">blastp — protein vs protein</option>
+                <option value="blastx">blastx — translated nucleotide vs protein</option>
+                <option value="tblastn">tblastn — protein vs translated nucleotide</option>
+              </select>
+              <label class="form-label" style="margin-top:12px">Database</label>
+              <select id="blastDb" class="ss">
+                <option value="nt">nt — NCBI Nucleotide</option>
+                <option value="nr">nr — NCBI Non-Redundant Protein</option>
+                <option value="refseq_rna">RefSeq RNA</option>
+                <option value="refseq_protein">RefSeq Protein</option>
+                <option value="swissprot">Swiss-Prot</option>
+                <option value="pdbnt">PDB Nucleotide</option>
+                <option value="pdbaa">PDB Protein</option>
+              </select>
+              <label class="form-label" style="margin-top:12px">Max Hits</label>
+              <select id="blastHits" class="ss">
+                <option value="10">10</option>
+                <option value="20" selected>20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+          </div>
+          <div class="tool-actions">
+            <button class="btn-search" onclick="submitBLAST()">🚀 Submit BLAST Job</button>
+            <button class="btn-secondary-sm" onclick="loadBlastExample()">Load Example</button>
+          </div>
+        </div>
+        <div id="blast-status" class="job-status-box" style="display:none"></div>
+        <div class="results-area" id="results-blast"></div>
+      </div>
+
+      <!-- Clustal Omega -->
+      <div class="tool-panel" id="tool-alignment-clustal">
+        <div class="tool-info-bar">
+          <div class="tool-info-left">
+            <span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div>
+              <h3 class="tool-name">Clustal Omega — Multiple Sequence Alignment (EBI)</h3>
+              <p class="tool-desc">Fast and scalable MSA for DNA, RNA, and protein sequences. Uses seeded guide trees and HMM profile matching.</p>
+            </div>
+          </div>
+          <a href="https://www.ebi.ac.uk/Tools/msa/clustalo/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">EBI Clustal ↗</a>
+        </div>
+        <div class="search-card">
+          <label class="form-label">Input Sequences (FASTA format, ≥ 2 sequences)</label>
+          <textarea id="clustalSeqs" class="seq-ta" rows="10" placeholder=">Sequence_1
+ATGCGATCGATCGATCGATCGATCGATCGAT
+>Sequence_2
+ATGCGATCGATCGATCGATCGATCGATCGTT
+>Sequence_3
+ATGCGATCGATCTATCGATCGATCGATCGAT"></textarea>
+          <div class="tool-actions">
+            <button class="btn-search" onclick="submitClustal()">🚀 Run Clustal Omega</button>
+            <button class="btn-secondary-sm" onclick="loadClustalExample()">Load Example</button>
+          </div>
+        </div>
+        <div id="clustal-status" class="job-status-box" style="display:none"></div>
+        <div class="results-area" id="results-clustal"></div>
+      </div>
+
+      <!-- Bowtie2/BWA -->
+      <div class="tool-panel" id="tool-alignment-bowtie">
+        <div class="tool-info-bar">
+          <div class="tool-info-left">
+            <span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div>
+              <h3 class="tool-name">Bowtie2 / BWA — Short-Read Aligners</h3>
+              <p class="tool-desc">Fast NGS read alignment to reference genomes. Bowtie2 for DNA-seq; BWA-MEM for long reads. Run via Galaxy.</p>
+            </div>
+          </div>
+          <a href="https://usegalaxy.org/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">Galaxy Platform ↗</a>
+        </div>
+        <div class="galaxy-tool-card">
+          <div class="galaxy-info">
+            <div class="galaxy-badge">Powered by Galaxy Platform</div>
+            <h4>How to run Bowtie2 / BWA on Galaxy:</h4>
+            <ol class="galaxy-steps">
+              <li>Go to <a href="https://usegalaxy.org" target="_blank" rel="noopener noreferrer">usegalaxy.org</a> (free account)</li>
+              <li>Upload your FASTQ reads (History → Upload)</li>
+              <li>Search "Bowtie2" or "BWA-MEM" in the Tool panel</li>
+              <li>Select reference genome (e.g., hg38, mm10)</li>
+              <li>Set parameters and click Execute</li>
+              <li>Download BAM/SAM output for downstream analysis</li>
+            </ol>
+          </div>
+          <div class="galaxy-quick-links">
+            <h4>Quick Launch on Galaxy:</h4>
+            <a href="https://usegalaxy.org/?tool_id=bowtie2" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 Open Bowtie2 on Galaxy</a>
+            <a href="https://usegalaxy.org/?tool_id=bwa_mem" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 Open BWA-MEM on Galaxy</a>
+            <a href="https://usegalaxy.eu/?tool_id=bowtie2" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 Bowtie2 (Europe)</a>
+          </div>
+          <div class="tool-docs">
+            <h4>In-Browser Pairwise Alignment (Smith-Waterman)</h4>
+            <p>For quick local alignment without Galaxy:</p>
+            <button class="btn-search" onclick="openCategory('alignment'); switchTool('alignment','pairwise', document.querySelector('[onclick*=pairwise]'))">Open Pairwise Aligner →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Minimap2 -->
+      <div class="tool-panel" id="tool-alignment-minimap">
+        <div class="tool-info-bar">
+          <div class="tool-info-left">
+            <span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div>
+              <h3 class="tool-name">Minimap2 — Long-Read Aligner</h3>
+              <p class="tool-desc">Sequence alignment for long reads (PacBio, Oxford Nanopore). Maps DNA/cDNA/RNA to large reference genomes.</p>
+            </div>
+          </div>
+          <a href="https://usegalaxy.org/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">Galaxy Platform ↗</a>
+        </div>
+        <div class="galaxy-tool-card">
+          <div class="galaxy-info">
+            <div class="galaxy-badge">Powered by Galaxy Platform</div>
+            <h4>Minimap2 via Galaxy:</h4>
+            <ol class="galaxy-steps">
+              <li>Upload your long-read FASTQ/FASTA (PacBio or ONT)</li>
+              <li>Search "Minimap2" in Galaxy Tool panel</li>
+              <li>Choose preset: map-pb (PacBio), map-ont (Nanopore), or splice (RNA)</li>
+              <li>Select reference genome</li>
+              <li>Execute and download PAF/SAM output</li>
+            </ol>
+          </div>
+          <div class="galaxy-quick-links">
+            <a href="https://usegalaxy.org/?tool_id=minimap2" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 Open Minimap2 on Galaxy</a>
+            <a href="https://usegalaxy.eu/?tool_id=minimap2" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 Minimap2 (Europe)</a>
+          </div>
+          <div class="info-cards-grid">
+            <div class="info-mini-card"><strong>map-pb</strong><br/>PacBio CLR/CCS reads</div>
+            <div class="info-mini-card"><strong>map-ont</strong><br/>Oxford Nanopore reads</div>
+            <div class="info-mini-card"><strong>splice</strong><br/>Long-read RNA-seq</div>
+            <div class="info-mini-card"><strong>asm5/20</strong><br/>Assembly alignment</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- In-browser Pairwise Aligner -->
+      <div class="tool-panel" id="tool-alignment-pairwise">
+        <div class="tool-info-bar">
+          <div class="tool-info-left">
+            <span class="tool-badge-large sw-badge">⚙️ Built-in Tool</span>
+            <div>
+              <h3 class="tool-name">Pairwise Sequence Aligner — Needleman-Wunsch / Smith-Waterman</h3>
+              <p class="tool-desc">Full dynamic programming alignment in your browser. Supports DNA, RNA, and protein sequences.</p>
+            </div>
+          </div>
+        </div>
+        <div class="search-card">
+          <div class="seq-two-col">
+            <div>
+              <label class="form-label">Sequence 1 <span id="s1len" class="len-badge">0 bp</span></label>
+              <textarea id="pwSeq1" class="seq-ta" rows="5" placeholder=">Seq1&#10;ATGCGATCGATCGATCG..." oninput="updateSeqLen('pwSeq1','s1len')"></textarea>
+            </div>
+            <div>
+              <label class="form-label">Sequence 2 <span id="s2len" class="len-badge">0 bp</span></label>
+              <textarea id="pwSeq2" class="seq-ta" rows="5" placeholder=">Seq2&#10;ATGCGATCGATCTATCG..." oninput="updateSeqLen('pwSeq2','s2len')"></textarea>
+            </div>
+          </div>
+          <div class="param-row">
+            <select id="pwMethod" class="ss">
+              <option value="global">Global (Needleman-Wunsch)</option>
+              <option value="local">Local (Smith-Waterman)</option>
+            </select>
+            <select id="pwSeqType" class="ss">
+              <option value="dna">DNA/RNA</option>
+              <option value="protein">Protein</option>
+            </select>
+            <label class="param-label">Match <input type="number" id="pwMatch" value="2" class="param-num" min="0" max="10"></label>
+            <label class="param-label">Mismatch <input type="number" id="pwMismatch" value="-1" class="param-num" min="-10" max="0"></label>
+            <label class="param-label">Gap <input type="number" id="pwGap" value="-2" class="param-num" min="-10" max="0"></label>
+          </div>
+          <div class="tool-actions">
+            <button class="btn-search" onclick="runPairwiseAlign()">▶ Run Alignment</button>
+            <button class="btn-secondary-sm" onclick="loadPairwiseExample()">Load Example</button>
+            <button class="btn-secondary-sm" onclick="clearPairwise()">Clear</button>
+          </div>
+        </div>
+        <div class="results-area" id="results-pairwise"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         CAT 3: NGS & GENOMICS
+    ═══════════════════════════════════ -->
+    <div class="cat-panel" id="panel-ngs">
+      <div class="panel-header">
+        <div class="panel-title-row">
+          <span class="panel-icon">🧬</span>
+          <div>
+            <h2 class="panel-title">Next-Generation Sequencing (NGS) &amp; Genomics</h2>
+            <p class="panel-sub">Quality control, variant calling, genome visualization — via Galaxy and embedded tools</p>
+          </div>
+        </div>
+      </div>
+      <div class="tool-tabs">
+        <button class="tool-tab active" onclick="switchTool('ngs','fastqc',this)"><span class="tt-badge sw-badge">⚙️</span>FastQC</button>
+        <button class="tool-tab" onclick="switchTool('ngs','gatk',this)"><span class="tt-badge sw-badge">⚙️</span>GATK</button>
+        <button class="tool-tab" onclick="switchTool('ngs','deepvariant',this)"><span class="tt-badge sw-badge">⚙️</span>DeepVariant</button>
+        <button class="tool-tab" onclick="switchTool('ngs','samtools',this)"><span class="tt-badge sw-badge">⚙️</span>Samtools/bedtools</button>
+        <button class="tool-tab" onclick="switchTool('ngs','igv',this)"><span class="tt-badge sw-badge">⚙️</span>IGV</button>
+      </div>
+
+      <div class="tool-panel active" id="tool-ngs-fastqc">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div><h3 class="tool-name">FastQC — Quality Control for NGS Reads</h3>
+            <p class="tool-desc">Checks per-base quality, GC content, adapter contamination, sequence duplication, and more.</p></div>
+          </div>
+          <a href="https://usegalaxy.org/?tool_id=fastqc" target="_blank" rel="noopener noreferrer" class="tool-ext-link">Run on Galaxy ↗</a>
+        </div>
+        <div class="galaxy-tool-card">
+          <div class="galaxy-badge">⚙️ Software Tool — Run via Galaxy</div>
+          <div class="info-cards-grid" style="margin-top:16px">
+            <div class="info-mini-card"><strong>Per Base Quality</strong><br/>Phred quality scores per position</div>
+            <div class="info-mini-card"><strong>GC Content</strong><br/>Theoretical vs. actual GC%</div>
+            <div class="info-mini-card"><strong>Adapter Content</strong><br/>Detects Illumina adapters</div>
+            <div class="info-mini-card"><strong>Duplication</strong><br/>PCR duplicate detection</div>
+            <div class="info-mini-card"><strong>Overrepresented</strong><br/>Flags contaminated reads</div>
+            <div class="info-mini-card"><strong>Kmer Content</strong><br/>Systematic sequence biases</div>
+          </div>
+          <div class="galaxy-quick-links" style="margin-top:20px">
+            <a href="https://usegalaxy.org/?tool_id=fastqc" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 Run FastQC on Galaxy</a>
+            <a href="https://usegalaxy.eu/?tool_id=fastqc" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 FastQC (Europe)</a>
+            <a href="https://www.bioinformatics.babraham.ac.uk/projects/fastqc/" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">📦 Download FastQC</a>
+          </div>
+          <div class="workflow-box">
+            <h4>Typical FastQC Workflow:</h4>
+            <div class="workflow-steps">
+              <div class="ws">📤 Upload FASTQ</div><div class="ws-arrow">→</div>
+              <div class="ws">🔬 FastQC Analysis</div><div class="ws-arrow">→</div>
+              <div class="ws">✂️ Trimmomatic</div><div class="ws-arrow">→</div>
+              <div class="ws">🔬 FastQC (Post)</div><div class="ws-arrow">→</div>
+              <div class="ws">🗺️ Alignment</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-panel" id="tool-ngs-gatk">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div><h3 class="tool-name">GATK — Genome Analysis Toolkit (Broad Institute)</h3>
+            <p class="tool-desc">Industry standard for variant discovery. HaplotypeCaller, GenotypeGVCFs, BQSR, VQSR, and Mutect2 for somatic variants.</p></div>
+          </div>
+          <a href="https://usegalaxy.org/?tool_id=gatk4_haplotype_caller" target="_blank" rel="noopener noreferrer" class="tool-ext-link">Run on Galaxy ↗</a>
+        </div>
+        <div class="galaxy-tool-card">
+          <div class="galaxy-badge">⚙️ Software Tool — Run via Galaxy</div>
+          <div class="info-cards-grid" style="margin-top:16px">
+            <div class="info-mini-card"><strong>HaplotypeCaller</strong><br/>Germline SNPs &amp; indels</div>
+            <div class="info-mini-card"><strong>Mutect2</strong><br/>Somatic short mutations</div>
+            <div class="info-mini-card"><strong>BQSR</strong><br/>Base quality score recalibration</div>
+            <div class="info-mini-card"><strong>VQSR</strong><br/>Variant quality score recalibration</div>
+            <div class="info-mini-card"><strong>CNVnator</strong><br/>Copy number variation</div>
+            <div class="info-mini-card"><strong>SplitNCigar</strong><br/>RNA-seq pre-processing</div>
+          </div>
+          <div class="galaxy-quick-links" style="margin-top:20px">
+            <a href="https://usegalaxy.org/?tool_id=gatk4_haplotype_caller" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 HaplotypeCaller on Galaxy</a>
+            <a href="https://usegalaxy.org/?tool_id=gatk4_mutect2" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 Mutect2 on Galaxy</a>
+            <a href="https://gatk.broadinstitute.org/" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">📦 GATK Documentation</a>
+          </div>
+          <div class="workflow-box">
+            <h4>GATK Best Practices (Germline Variant Calling):</h4>
+            <div class="workflow-steps">
+              <div class="ws">BWA-MEM</div><div class="ws-arrow">→</div>
+              <div class="ws">MarkDuplicates</div><div class="ws-arrow">→</div>
+              <div class="ws">BQSR</div><div class="ws-arrow">→</div>
+              <div class="ws">HaplotypeCaller</div><div class="ws-arrow">→</div>
+              <div class="ws">VQSR</div><div class="ws-arrow">→</div>
+              <div class="ws">VCF Output</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-panel" id="tool-ngs-deepvariant">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div><h3 class="tool-name">DeepVariant — Deep Learning Variant Caller (Google)</h3>
+            <p class="tool-desc">Convolutional neural network for variant calling. Converts pileup images to variant predictions with high accuracy.</p></div>
+          </div>
+          <a href="https://github.com/google/deepvariant" target="_blank" rel="noopener noreferrer" class="tool-ext-link">GitHub ↗</a>
+        </div>
+        <div class="galaxy-tool-card">
+          <div class="galaxy-badge">⚙️ Software Tool — GPU-Accelerated Deep Learning</div>
+          <div class="info-cards-grid" style="margin-top:16px">
+            <div class="info-mini-card"><strong>WGS Mode</strong><br/>Whole genome sequencing</div>
+            <div class="info-mini-card"><strong>WES Mode</strong><br/>Whole exome sequencing</div>
+            <div class="info-mini-card"><strong>PACBIO Mode</strong><br/>PacBio long reads</div>
+            <div class="info-mini-card"><strong>ONT Mode</strong><br/>Oxford Nanopore reads</div>
+          </div>
+          <div class="galaxy-quick-links" style="margin-top:20px">
+            <a href="https://usegalaxy.org/?tool_id=deepvariant" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 DeepVariant on Galaxy</a>
+            <a href="https://cloud.google.com/life-sciences/docs/tutorials/deepvariant" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">☁️ Google Cloud (Free Trial)</a>
+            <a href="https://github.com/google/deepvariant" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">📦 Docker Container</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-panel" id="tool-ngs-samtools">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div><h3 class="tool-name">Samtools / bedtools — BAM/BED Manipulation</h3>
+            <p class="tool-desc">Essential NGS post-processing: sort, index, view BAM files (Samtools); genomic interval arithmetic (bedtools).</p></div>
+          </div>
+          <a href="https://usegalaxy.org/?tool_id=samtools_view" target="_blank" rel="noopener noreferrer" class="tool-ext-link">Run on Galaxy ↗</a>
+        </div>
+        <div class="galaxy-tool-card">
+          <div class="galaxy-badge">⚙️ Software Tool — Run via Galaxy</div>
+          <div class="two-col-docs">
+            <div>
+              <h4>Samtools Commands:</h4>
+              <div class="code-block">samtools sort input.bam -o sorted.bam
+samtools index sorted.bam
+samtools flagstat sorted.bam
+samtools depth sorted.bam
+samtools view -F 4 sorted.bam</div>
+            </div>
+            <div>
+              <h4>bedtools Commands:</h4>
+              <div class="code-block">bedtools intersect -a a.bed -b b.bed
+bedtools coverage -a genes.bed -b reads.bam
+bedtools merge -i sorted.bed
+bedtools genomecov -ibam sorted.bam</div>
+            </div>
+          </div>
+          <div class="galaxy-quick-links" style="margin-top:16px">
+            <a href="https://usegalaxy.org/?tool_id=samtools_sort" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 Samtools on Galaxy</a>
+            <a href="https://usegalaxy.org/?tool_id=bedtools_intersect" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 bedtools on Galaxy</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-panel" id="tool-ngs-igv">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div><h3 class="tool-name">IGV — Integrative Genomics Viewer</h3>
+            <p class="tool-desc">Interactive genome browser for visualizing BAM, VCF, BED, BigWig files. Embedded directly in BioNexus via IGV.js.</p></div>
+          </div>
+          <a href="https://igv.org/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">igv.org ↗</a>
+        </div>
+        <div class="igv-section">
+          <div class="search-card">
+            <div class="search-row">
+              <input id="igvLocus" class="si" placeholder="Gene or locus (e.g. BRCA1, chr17:43044295-43125483)" value="BRCA1"/>
+              <select id="igvGenome" class="ss">
+                <option value="hg38">Human hg38</option>
+                <option value="hg19">Human hg19</option>
+                <option value="mm10">Mouse mm10</option>
+                <option value="dm6">Drosophila dm6</option>
+              </select>
+              <button class="btn-search" onclick="navigateIGV()">🔭 Navigate</button>
+            </div>
+          </div>
+          <div id="igv-container" class="igv-container">
+            <div class="igv-loading">
+              <div class="spin-ring"></div>
+              <p>Loading IGV.js genome browser...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         CAT 4: TRANSCRIPTOMICS
+    ═══════════════════════════════════ -->
+    <div class="cat-panel" id="panel-transcriptomics">
+      <div class="panel-header">
+        <div class="panel-title-row"><span class="panel-icon">📊</span>
+          <div><h2 class="panel-title">Transcriptomics (RNA-Seq)</h2>
+          <p class="panel-sub">RNA-seq alignment, quantification, and differential expression analysis</p></div>
+        </div>
+      </div>
+      <div class="tool-tabs">
+        <button class="tool-tab active" onclick="switchTool('transcriptomics','hisat',this)"><span class="tt-badge sw-badge">⚙️</span>HISAT2 / STAR</button>
+        <button class="tool-tab" onclick="switchTool('transcriptomics','featurecounts',this)"><span class="tt-badge sw-badge">⚙️</span>FeatureCounts / Salmon</button>
+        <button class="tool-tab" onclick="switchTool('transcriptomics','deseq',this)"><span class="tt-badge sw-badge">⚙️</span>DESeq2 / EdgeR</button>
+      </div>
+
+      <div class="tool-panel active" id="tool-transcriptomics-hisat">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div><h3 class="tool-name">HISAT2 / STAR — RNA-seq Aligners</h3>
+            <p class="tool-desc">Splice-aware aligners for mapping RNA-seq reads to reference genomes. HISAT2 is faster; STAR is more accurate for junction detection.</p></div>
+          </div>
+          <a href="https://usegalaxy.org/?tool_id=hisat2" target="_blank" rel="noopener noreferrer" class="tool-ext-link">Run on Galaxy ↗</a>
+        </div>
+        <div class="galaxy-tool-card">
+          <div class="galaxy-badge">⚙️ Software Tool — Run via Galaxy</div>
+          <div class="two-col-docs" style="margin-top:16px">
+            <div>
+              <h4>HISAT2:</h4>
+              <ul class="doc-list"><li>Fast splice-aware alignment</li><li>Low memory (4GB index for hg38)</li><li>Best for standard RNA-seq</li><li>Outputs BAM for downstream use</li></ul>
+            </div>
+            <div>
+              <h4>STAR:</h4>
+              <ul class="doc-list"><li>Ultra-fast alignment (50M reads/hr)</li><li>High memory (~32GB for hg38)</li><li>Best junction accuracy</li><li>Supports fusion gene detection</li></ul>
+            </div>
+          </div>
+          <div class="galaxy-quick-links" style="margin-top:20px">
+            <a href="https://usegalaxy.org/?tool_id=hisat2" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 HISAT2 on Galaxy</a>
+            <a href="https://usegalaxy.org/?tool_id=rna_star" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 STAR on Galaxy</a>
+          </div>
+          <div class="workflow-box">
+            <h4>RNA-Seq Full Pipeline:</h4>
+            <div class="workflow-steps">
+              <div class="ws">FastQC</div><div class="ws-arrow">→</div>
+              <div class="ws">Trimmomatic</div><div class="ws-arrow">→</div>
+              <div class="ws">HISAT2/STAR</div><div class="ws-arrow">→</div>
+              <div class="ws">FeatureCounts</div><div class="ws-arrow">→</div>
+              <div class="ws">DESeq2</div><div class="ws-arrow">→</div>
+              <div class="ws">Volcano Plot</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-panel" id="tool-transcriptomics-featurecounts">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div><h3 class="tool-name">FeatureCounts / Salmon — Read Quantification</h3>
+            <p class="tool-desc">Count reads per gene (FeatureCounts) or quantify transcript abundances with quasi-mapping (Salmon).</p></div>
+          </div>
+          <a href="https://usegalaxy.org/?tool_id=featurecounts" target="_blank" rel="noopener noreferrer" class="tool-ext-link">Run on Galaxy ↗</a>
+        </div>
+        <div class="galaxy-tool-card">
+          <div class="galaxy-badge">⚙️ Software Tool — Run via Galaxy</div>
+          <div class="two-col-docs" style="margin-top:16px">
+            <div>
+              <h4>FeatureCounts:</h4>
+              <ul class="doc-list"><li>Counts reads overlapping genomic features</li><li>Uses GTF/GFF annotation</li><li>Handles paired-end and stranded data</li><li>Outputs count matrix (genes × samples)</li></ul>
+            </div>
+            <div>
+              <h4>Salmon:</h4>
+              <ul class="doc-list"><li>Alignment-free quantification</li><li>Extremely fast (minutes per sample)</li><li>Transcript-level estimates (TPM)</li><li>Corrects for GC bias &amp; sequence bias</li></ul>
+            </div>
+          </div>
+          <div class="galaxy-quick-links" style="margin-top:20px">
+            <a href="https://usegalaxy.org/?tool_id=featurecounts" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 FeatureCounts on Galaxy</a>
+            <a href="https://usegalaxy.org/?tool_id=salmon" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 Salmon on Galaxy</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-panel" id="tool-transcriptomics-deseq">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div><h3 class="tool-name">DESeq2 / EdgeR — Differential Expression Analysis</h3>
+            <p class="tool-desc">Statistical frameworks for identifying differentially expressed genes between conditions using negative binomial models.</p></div>
+          </div>
+          <a href="https://usegalaxy.org/?tool_id=deseq2" target="_blank" rel="noopener noreferrer" class="tool-ext-link">Run on Galaxy ↗</a>
+        </div>
+        <div class="galaxy-tool-card">
+          <div class="galaxy-badge">⚙️ Software (R/Bioconductor) — Run via Galaxy</div>
+          <div class="two-col-docs" style="margin-top:16px">
+            <div>
+              <h4>DESeq2:</h4>
+              <ul class="doc-list"><li>Shrinkage estimation for dispersion &amp; fold changes</li><li>Handles small sample sizes</li><li>Produces MA plots, Volcano plots, PCA</li><li>Best for &lt; 20 samples per group</li></ul>
+            </div>
+            <div>
+              <h4>EdgeR:</h4>
+              <ul class="doc-list"><li>Exact test for overdispersed counts</li><li>GLM-based analysis</li><li>Good for experiments with few replicates</li><li>Robust to outlier samples</li></ul>
+            </div>
+          </div>
+          <div class="galaxy-quick-links" style="margin-top:20px">
+            <a href="https://usegalaxy.org/?tool_id=deseq2" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 DESeq2 on Galaxy</a>
+            <a href="https://usegalaxy.org/?tool_id=edger" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 EdgeR on Galaxy</a>
+            <a href="https://bioconductor.org/packages/DESeq2/" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">📦 Bioconductor Docs</a>
+          </div>
+          <div class="workflow-box">
+            <h4>DESeq2 Output Interpretation:</h4>
+            <div class="info-cards-grid">
+              <div class="info-mini-card"><strong>log2FC &gt; 1</strong><br/>2× upregulated</div>
+              <div class="info-mini-card"><strong>padj &lt; 0.05</strong><br/>Statistically significant</div>
+              <div class="info-mini-card"><strong>Volcano Plot</strong><br/>FC vs -log10(padj)</div>
+              <div class="info-mini-card"><strong>MA Plot</strong><br/>log2FC vs mean count</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         CAT 5: PROTEOMICS
+    ═══════════════════════════════════ -->
+    <div class="cat-panel" id="panel-proteomics">
+      <div class="panel-header">
+        <div class="panel-title-row"><span class="panel-icon">🔬</span>
+          <div><h2 class="panel-title">Proteomics &amp; Structural Biology</h2>
+          <p class="panel-sub">Search proteins, view 3D structures, explore AlphaFold predictions and interaction networks</p></div>
+        </div>
+      </div>
+      <div class="tool-tabs">
+        <button class="tool-tab active" onclick="switchTool('proteomics','uniprot',this)"><span class="tt-badge db-badge">DB</span>UniProt</button>
+        <button class="tool-tab" onclick="switchTool('proteomics','pdb',this)"><span class="tt-badge db-badge">DB</span>PDB</button>
+        <button class="tool-tab" onclick="switchTool('proteomics','alphafold',this)"><span class="tt-badge db-badge">DB</span>AlphaFold</button>
+        <button class="tool-tab" onclick="switchTool('proteomics','string',this)"><span class="tt-badge db-badge">DB</span>STRING</button>
+      </div>
+
+      <!-- UniProt -->
+      <div class="tool-panel active" id="tool-proteomics-uniprot">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large db-badge">📦 Database</span>
+            <div><h3 class="tool-name">UniProt — Universal Protein Resource</h3>
+            <p class="tool-desc">Swiss-Prot (reviewed) + TrEMBL (unreviewed): sequence, function, structure, interactions, disease.</p></div>
+          </div>
+          <a href="https://www.uniprot.org/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">uniprot.org ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="search-row">
+            <input id="uniprotQuery" class="si" placeholder="Protein name, gene, accession (e.g. P04637, BRCA1_HUMAN, insulin)..."/>
+            <select id="uniprotOrganism" class="ss">
+              <option value="">All Organisms</option>
+              <option value="9606">Human</option>
+              <option value="10090">Mouse</option>
+              <option value="10116">Rat</option>
+              <option value="3702">Arabidopsis</option>
+              <option value="83333">E. coli K-12</option>
+              <option value="4932">S. cerevisiae</option>
+            </select>
+            <select id="uniprotReviewed" class="ss">
+              <option value="">All entries</option>
+              <option value="true">Swiss-Prot (Reviewed)</option>
+            </select>
+            <button class="btn-search" onclick="searchUniProt()">🔍 Search UniProt</button>
+          </div>
+          <div class="quick-chips">
+            <span>Try:</span>
+            <button class="chip" onclick="quickUniProt('P04637')">P04637 (p53)</button>
+            <button class="chip" onclick="quickUniProt('insulin human')">Insulin</button>
+            <button class="chip" onclick="quickUniProt('hemoglobin')">Hemoglobin</button>
+            <button class="chip" onclick="quickUniProt('BRCA1 human')">BRCA1</button>
+          </div>
+        </div>
+        <div class="results-area" id="results-uniprot"></div>
+      </div>
+
+      <!-- PDB -->
+      <div class="tool-panel" id="tool-proteomics-pdb">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large db-badge">📦 Database</span>
+            <div><h3 class="tool-name">RCSB PDB — Protein Data Bank</h3>
+            <p class="tool-desc">Repository of 3D biological macromolecular structures. Over 210,000 structures from X-ray, NMR, cryo-EM.</p></div>
+          </div>
+          <a href="https://www.rcsb.org/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">rcsb.org ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="search-row">
+            <input id="pdbQuery" class="si" placeholder="PDB ID or name (e.g. 1HHO, 6VXX, COVID spike, hemoglobin)..." />
+            <button class="btn-search" onclick="searchPDB()">🔍 Search PDB</button>
+            <button class="btn-secondary-sm" onclick="loadPDBEntry()">Load by ID</button>
+          </div>
+          <div class="quick-chips">
+            <span>Quick Load:</span>
+            <button class="chip" onclick="directLoadPDB('1HHO')">1HHO (Hemoglobin)</button>
+            <button class="chip" onclick="directLoadPDB('6VXX')">6VXX (COVID Spike)</button>
+            <button class="chip" onclick="directLoadPDB('1TUP')">1TUP (p53)</button>
+            <button class="chip" onclick="directLoadPDB('1INS')">1INS (Insulin)</button>
+            <button class="chip" onclick="directLoadPDB('4HHB')">4HHB (Deoxy-Hb)</button>
+          </div>
+        </div>
+        <div id="pdb-viewer-section" class="pdb-viewer-section" style="display:none">
+          <div class="pdb-layout">
+            <div class="pdb-iframe-wrap">
+              <iframe id="pdbFrame" class="pdb-iframe" src="" title="RCSB PDB 3D Viewer"></iframe>
+            </div>
+            <div class="pdb-info-panel" id="pdbInfoPanel"></div>
+          </div>
+        </div>
+        <div class="results-area" id="results-pdb"></div>
+      </div>
+
+      <!-- AlphaFold -->
+      <div class="tool-panel" id="tool-proteomics-alphafold">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large db-badge">📦 Database</span>
+            <div><h3 class="tool-name">AlphaFold Database — AI Protein Structure Predictions</h3>
+            <p class="tool-desc">DeepMind's AlphaFold2 predictions for 200M+ proteins. Enter any UniProt accession to view the predicted structure.</p></div>
+          </div>
+          <a href="https://alphafold.ebi.ac.uk/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">alphafold.ebi.ac.uk ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="search-row">
+            <input id="alphafoldAcc" class="si" placeholder="UniProt Accession (e.g. P04637, Q8WZ42, P69905)..."/>
+            <button class="btn-search" onclick="fetchAlphaFold()">🔍 Fetch AlphaFold</button>
+          </div>
+          <div class="quick-chips">
+            <span>Try:</span>
+            <button class="chip" onclick="quickAlphaFold('P04637')">P04637 (TP53)</button>
+            <button class="chip" onclick="quickAlphaFold('P01308')">P01308 (Insulin)</button>
+            <button class="chip" onclick="quickAlphaFold('P00533')">P00533 (EGFR)</button>
+            <button class="chip" onclick="quickAlphaFold('Q8WZ42')">Q8WZ42 (Titin)</button>
+          </div>
+        </div>
+        <div class="results-area" id="results-alphafold"></div>
+      </div>
+
+      <!-- STRING -->
+      <div class="tool-panel" id="tool-proteomics-string">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large db-badge">📦 Database</span>
+            <div><h3 class="tool-name">STRING — Protein Interaction Networks</h3>
+            <p class="tool-desc">Known and predicted protein-protein interactions. Covers physical interactions, co-expression, co-occurrence, and more.</p></div>
+          </div>
+          <a href="https://string-db.org/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">string-db.org ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="search-row">
+            <input id="stringProtein" class="si" placeholder="Protein name or gene (e.g. TP53, BRCA1, EGFR)..."/>
+            <select id="stringSpecies" class="ss">
+              <option value="9606">Human (9606)</option>
+              <option value="10090">Mouse (10090)</option>
+              <option value="4932">S. cerevisiae (4932)</option>
+              <option value="83333">E. coli K-12 (83333)</option>
+              <option value="3702">A. thaliana (3702)</option>
+            </select>
+            <select id="stringScore" class="ss">
+              <option value="900">Highest (≥0.9)</option>
+              <option value="700">High (≥0.7)</option>
+              <option value="400" selected>Medium (≥0.4)</option>
+              <option value="150">Low (≥0.15)</option>
+            </select>
+            <button class="btn-search" onclick="fetchSTRING()">🔍 Get Interactions</button>
+          </div>
+          <div class="quick-chips">
+            <span>Try:</span>
+            <button class="chip" onclick="quickSTRING('TP53')">TP53</button>
+            <button class="chip" onclick="quickSTRING('BRCA1')">BRCA1</button>
+            <button class="chip" onclick="quickSTRING('EGFR')">EGFR</button>
+          </div>
+        </div>
+        <div id="string-network-wrap" style="display:none">
+          <div class="string-network-container">
+            <canvas id="stringCanvas" width="900" height="500"></canvas>
+          </div>
+          <div class="results-area" id="results-string-table"></div>
+        </div>
+        <div class="results-area" id="results-string"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         CAT 6: PHYLOGENETICS
+    ═══════════════════════════════════ -->
+    <div class="cat-panel" id="panel-phylogenetics">
+      <div class="panel-header">
+        <div class="panel-title-row"><span class="panel-icon">🌳</span>
+          <div><h2 class="panel-title">Phylogenetics &amp; Evolution</h2>
+          <p class="panel-sub">Build phylogenetic trees in-browser (UPGMA/NJ) or submit to EBI PhyML for ML trees</p></div>
+        </div>
+      </div>
+      <div class="tool-tabs">
+        <button class="tool-tab active" onclick="switchTool('phylogenetics','mega',this)"><span class="tt-badge sw-badge">⚙️</span>MEGA (In-Browser)</button>
+        <button class="tool-tab" onclick="switchTool('phylogenetics','phyml',this)"><span class="tt-badge sw-badge">⚙️</span>PhyML / RAxML</button>
+      </div>
+
+      <div class="tool-panel active" id="tool-phylogenetics-mega">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div><h3 class="tool-name">MEGA-Style Tree Builder — In-Browser (NJ/UPGMA)</h3>
+            <p class="tool-desc">Build and visualize phylogenetic trees from FASTA sequences directly in your browser. Neighbor-Joining and UPGMA methods.</p></div>
+          </div>
+          <a href="https://www.megasoftware.net/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">MEGA Software ↗</a>
+        </div>
+        <div class="search-card">
+          <label class="form-label">Input Sequences (FASTA format — minimum 3 sequences)</label>
+          <textarea id="megaSeqs" class="seq-ta" rows="10" placeholder=">Homo_sapiens&#10;ATGCGATCGATCGATCGATCGATCGAT&#10;>Pan_troglodytes&#10;ATGCGATCGATCGATCGATCGATCGTT&#10;>Gorilla_gorilla&#10;ATGCGATCGATCTATCGATCGATCGAT&#10;>Mus_musculus&#10;ATGCGATCAATCGATCGATCGATCGAT"></textarea>
+          <div class="param-row">
+            <select id="treeMethodSelect" class="ss">
+              <option value="nj">Neighbor-Joining (NJ)</option>
+              <option value="upgma">UPGMA</option>
+            </select>
+            <select id="distModelSelect" class="ss">
+              <option value="pdist">p-Distance</option>
+              <option value="jc">Jukes-Cantor</option>
+            </select>
+          </div>
+          <div class="tool-actions">
+            <button class="btn-search" onclick="buildTree()">🌳 Build Tree</button>
+            <button class="btn-secondary-sm" onclick="loadTreeExample()">Load Example</button>
+            <button class="btn-secondary-sm" onclick="exportTree()">Export SVG</button>
+          </div>
+        </div>
+        <div id="tree-container" class="tree-container" style="display:none">
+          <canvas id="treeCanvas" class="tree-canvas"></canvas>
+          <div id="tree-stats" class="tree-stats"></div>
+        </div>
+      </div>
+
+      <div class="tool-panel" id="tool-phylogenetics-phyml">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div><h3 class="tool-name">PhyML / RAxML — Maximum Likelihood Tree Inference (EBI)</h3>
+            <p class="tool-desc">Submit aligned sequences to EBI's PhyML service for maximum likelihood phylogenetic trees with bootstrap support.</p></div>
+          </div>
+          <a href="https://www.ebi.ac.uk/Tools/phylogeny/simple_phylogeny/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">EBI PhyML ↗</a>
+        </div>
+        <div class="search-card">
+          <label class="form-label">Aligned Sequences (Clustal or FASTA format — from Clustal Omega output)</label>
+          <textarea id="phymlSeqs" class="seq-ta" rows="8" placeholder="Paste aligned sequences (Clustal/FASTA format) here...&#10;Or first run Clustal Omega in the Alignment tab, then paste result here."></textarea>
+          <div class="param-row">
+            <select id="phymlModel" class="ss">
+              <option value="GTR">GTR (General Time Reversible)</option>
+              <option value="HKY85">HKY85</option>
+              <option value="JC69">Jukes-Cantor</option>
+              <option value="K80">Kimura 2-parameter</option>
+              <option value="WAG">WAG (protein)</option>
+              <option value="JTT">JTT (protein)</option>
+            </select>
+          </div>
+          <div class="tool-actions">
+            <button class="btn-search" onclick="submitPhyML()">🚀 Submit to EBI PhyML</button>
+          </div>
+        </div>
+        <div id="phyml-status" class="job-status-box" style="display:none"></div>
+        <div class="results-area" id="results-phyml"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         CAT 7: PATHWAYS & SYSTEMS
+    ═══════════════════════════════════ -->
+    <div class="cat-panel" id="panel-pathways">
+      <div class="panel-header">
+        <div class="panel-title-row"><span class="panel-icon">🗺️</span>
+          <div><h2 class="panel-title">Pathways, Systems Biology &amp; Metagenomics</h2>
+          <p class="panel-sub">KEGG pathways, Reactome diagrams, Cytoscape networks, and QIIME 2 microbiome analysis</p></div>
+        </div>
+      </div>
+      <div class="tool-tabs">
+        <button class="tool-tab active" onclick="switchTool('pathways','kegg',this)"><span class="tt-badge db-badge">DB</span>KEGG</button>
+        <button class="tool-tab" onclick="switchTool('pathways','reactome',this)"><span class="tt-badge db-badge">DB</span>Reactome</button>
+        <button class="tool-tab" onclick="switchTool('pathways','cytoscape',this)"><span class="tt-badge sw-badge">⚙️</span>Cytoscape</button>
+        <button class="tool-tab" onclick="switchTool('pathways','qiime',this)"><span class="tt-badge sw-badge">⚙️</span>QIIME 2</button>
+      </div>
+
+      <div class="tool-panel active" id="tool-pathways-kegg">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large db-badge">📦 Database</span>
+            <div><h3 class="tool-name">KEGG — Kyoto Encyclopedia of Genes and Genomes</h3>
+            <p class="tool-desc">Metabolic pathways, BRITE hierarchies, genome maps, drug-target interactions, and orthology databases.</p></div>
+          </div>
+          <a href="https://www.kegg.jp/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">kegg.jp ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="search-row">
+            <input id="keggQuery" class="si" placeholder="Pathway name or KEGG ID (e.g. cell cycle, hsa04110, glycolysis)..."/>
+            <select id="keggOrganism" class="ss">
+              <option value="hsa">Human (hsa)</option>
+              <option value="mmu">Mouse (mmu)</option>
+              <option value="eco">E. coli (eco)</option>
+              <option value="sce">S. cerevisiae (sce)</option>
+              <option value="dme">Drosophila (dme)</option>
+              <option value="cel">C. elegans (cel)</option>
+            </select>
+            <button class="btn-search" onclick="searchKEGG()">🔍 Search KEGG</button>
+          </div>
+          <div class="quick-chips">
+            <span>Common:</span>
+            <button class="chip" onclick="loadKEGGPathway('hsa04110')">Cell Cycle</button>
+            <button class="chip" onclick="loadKEGGPathway('hsa04151')">PI3K-Akt</button>
+            <button class="chip" onclick="loadKEGGPathway('hsa00010')">Glycolysis</button>
+            <button class="chip" onclick="loadKEGGPathway('hsa04010')">MAPK</button>
+            <button class="chip" onclick="loadKEGGPathway('hsa05210')">Colorectal Cancer</button>
+            <button class="chip" onclick="loadKEGGPathway('hsa04115')">p53 Signaling</button>
+          </div>
+        </div>
+        <div id="kegg-pathway-viewer" style="display:none" class="pathway-viewer">
+          <div id="kegg-pathway-content"></div>
+        </div>
+        <div class="results-area" id="results-kegg"></div>
+      </div>
+
+      <div class="tool-panel" id="tool-pathways-reactome">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large db-badge">📦 Database</span>
+            <div><h3 class="tool-name">Reactome — Curated Pathway Database</h3>
+            <p class="tool-desc">Expert-curated, peer-reviewed biological pathways. Covers signal transduction, gene expression, metabolism, disease.</p></div>
+          </div>
+          <a href="https://reactome.org/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">reactome.org ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="search-row">
+            <input id="reactomeQuery" class="si" placeholder="Pathway name (e.g. apoptosis, cell cycle, DNA repair, signaling)..."/>
+            <select id="reactomeSpecies" class="ss">
+              <option value="Homo sapiens">Human</option>
+              <option value="Mus musculus">Mouse</option>
+              <option value="Rattus norvegicus">Rat</option>
+              <option value="Drosophila melanogaster">Drosophila</option>
+            </select>
+            <button class="btn-search" onclick="searchReactome()">🔍 Search Reactome</button>
+          </div>
+          <div class="quick-chips">
+            <span>Common:</span>
+            <button class="chip" onclick="quickReactome('apoptosis')">Apoptosis</button>
+            <button class="chip" onclick="quickReactome('cell cycle')">Cell Cycle</button>
+            <button class="chip" onclick="quickReactome('DNA repair')">DNA Repair</button>
+            <button class="chip" onclick="quickReactome('p53')">p53 Regulation</button>
+          </div>
+        </div>
+        <div class="results-area" id="results-reactome"></div>
+      </div>
+
+      <div class="tool-panel" id="tool-pathways-cytoscape">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div><h3 class="tool-name">Cytoscape — Network Biology Visualization</h3>
+            <p class="tool-desc">Visualize and analyze biological networks (STRING, KEGG, custom). Embedded Cytoscape.js for in-browser rendering.</p></div>
+          </div>
+          <a href="https://cytoscape.org/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">cytoscape.org ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="search-row">
+            <input id="cytoGene" class="si" placeholder="Gene/protein name for network (e.g. TP53, EGFR, BRCA1)..."/>
+            <button class="btn-search" onclick="buildCytoscapeNetwork()">🕸️ Build Network</button>
+          </div>
+          <div class="quick-chips">
+            <span>Try:</span>
+            <button class="chip" onclick="quickCytoscape('TP53')">TP53 Network</button>
+            <button class="chip" onclick="quickCytoscape('BRCA1')">BRCA1 Network</button>
+            <button class="chip" onclick="quickCytoscape('EGFR')">EGFR Network</button>
+          </div>
+        </div>
+        <div id="cytoscape-wrap" style="display:none" class="cytoscape-wrap">
+          <div id="cytoscapeCanvas" class="cytoscape-canvas"></div>
+          <div id="cytoscape-legend" class="cytoscape-legend"></div>
+        </div>
+        <div class="results-area" id="results-cytoscape"></div>
+      </div>
+
+      <div class="tool-panel" id="tool-pathways-qiime">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div><h3 class="tool-name">QIIME 2 — Microbiome Analysis</h3>
+            <p class="tool-desc">Quantitative Insights Into Microbial Ecology. 16S rRNA amplicon sequencing, taxonomic classification, diversity analysis.</p></div>
+          </div>
+          <a href="https://qiime2.org/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">qiime2.org ↗</a>
+        </div>
+        <div class="galaxy-tool-card">
+          <div class="galaxy-badge">⚙️ Software — Run via Galaxy or Conda</div>
+          <div class="info-cards-grid" style="margin-top:16px">
+            <div class="info-mini-card"><strong>DADA2</strong><br/>ASV denoising &amp; chimera removal</div>
+            <div class="info-mini-card"><strong>Phylogenetics</strong><br/>Build insertion trees (SEPP)</div>
+            <div class="info-mini-card"><strong>Alpha Diversity</strong><br/>Shannon, Faith's PD, observed</div>
+            <div class="info-mini-card"><strong>Beta Diversity</strong><br/>UniFrac, Bray-Curtis PCoA</div>
+            <div class="info-mini-card"><strong>Taxonomy</strong><br/>SILVA, Greengenes2 classifiers</div>
+            <div class="info-mini-card"><strong>Longitudinal</strong><br/>Temporal microbiome analysis</div>
+          </div>
+          <div class="galaxy-quick-links" style="margin-top:20px">
+            <a href="https://usegalaxy.org/?tool_id=qiime_dada2_denoise_single" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 QIIME2 on Galaxy</a>
+            <a href="https://docs.qiime2.org/2024.2/" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">📖 QIIME 2 Docs</a>
+            <a href="https://library.qiime2.org/plugins/" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🔌 QIIME 2 Plugins</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         CAT 8: WORKFLOWS
+    ═══════════════════════════════════ -->
+    <div class="cat-panel" id="panel-workflows">
+      <div class="panel-header">
+        <div class="panel-title-row"><span class="panel-icon">⚙️</span>
+          <div><h2 class="panel-title">Workflow Management &amp; Environments</h2>
+          <p class="panel-sub">Galaxy, Nextflow/Snakemake, Bioconductor, and Bioconda — search packages and explore workflows</p></div>
+        </div>
+      </div>
+      <div class="tool-tabs">
+        <button class="tool-tab active" onclick="switchTool('workflows','galaxy',this)"><span class="tt-badge sw-badge">⚙️</span>Galaxy</button>
+        <button class="tool-tab" onclick="switchTool('workflows','nextflow',this)"><span class="tt-badge sw-badge">⚙️</span>Nextflow / Snakemake</button>
+        <button class="tool-tab" onclick="switchTool('workflows','bioconductor',this)"><span class="tt-badge db-badge">DB</span>Bioconductor</button>
+        <button class="tool-tab" onclick="switchTool('workflows','bioconda',this)"><span class="tt-badge db-badge">DB</span>Bioconda</button>
+      </div>
+
+      <div class="tool-panel active" id="tool-workflows-galaxy">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Platform</span>
+            <div><h3 class="tool-name">Galaxy Platform — Cloud Bioinformatics Workflows</h3>
+            <p class="tool-desc">Free, cloud-based platform to run 1000+ bioinformatics tools without command line expertise.</p></div>
+          </div>
+          <a href="https://usegalaxy.org/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">usegalaxy.org ↗</a>
+        </div>
+        <div class="galaxy-tool-card">
+          <div class="info-cards-grid">
+            <a href="https://usegalaxy.org/" target="_blank" rel="noopener noreferrer" class="info-mini-card link-card"><strong>🇺🇸 Galaxy US</strong><br/>usegalaxy.org</a>
+            <a href="https://usegalaxy.eu/" target="_blank" rel="noopener noreferrer" class="info-mini-card link-card"><strong>🇪🇺 Galaxy EU</strong><br/>usegalaxy.eu</a>
+            <a href="https://usegalaxy.org.au/" target="_blank" rel="noopener noreferrer" class="info-mini-card link-card"><strong>🇦🇺 Galaxy AU</strong><br/>usegalaxy.org.au</a>
+            <a href="https://training.galaxyproject.org/" target="_blank" rel="noopener noreferrer" class="info-mini-card link-card"><strong>📚 Galaxy Training</strong><br/>GTN Tutorials</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-panel" id="tool-workflows-nextflow">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large sw-badge">⚙️ Software</span>
+            <div><h3 class="tool-name">Nextflow / Snakemake — Pipeline Frameworks</h3>
+            <p class="tool-desc">Reproducible, scalable bioinformatics pipelines. Nextflow uses Groovy DSL; Snakemake uses Python-based rules.</p></div>
+          </div>
+          <a href="https://nf-co.re/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">nf-core ↗</a>
+        </div>
+        <div class="galaxy-tool-card">
+          <div class="two-col-docs">
+            <div>
+              <h4>Nextflow / nf-core Pipelines:</h4>
+              <div class="code-block">nextflow run nf-core/rnaseq
+nextflow run nf-core/sarek
+nextflow run nf-core/ampliseq
+nextflow run nf-core/chipseq</div>
+            </div>
+            <div>
+              <h4>Snakemake Example:</h4>
+              <div class="code-block">rule fastqc:
+  input: "reads/{sample}.fastq"
+  output: "qc/{sample}_fastqc.html"
+  shell: "fastqc {input} -o qc/"</div>
+            </div>
+          </div>
+          <div class="galaxy-quick-links" style="margin-top:16px">
+            <a href="https://nf-co.re/pipelines" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🚀 nf-core Pipelines</a>
+            <a href="https://snakemake.github.io/" target="_blank" rel="noopener noreferrer" class="galaxy-link-btn">🐍 Snakemake Docs</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-panel" id="tool-workflows-bioconductor">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large db-badge">📦 Repository</span>
+            <div><h3 class="tool-name">Bioconductor — R Bioinformatics Packages</h3>
+            <p class="tool-desc">2,200+ R packages for genomics, proteomics, transcriptomics, flow cytometry, and more.</p></div>
+          </div>
+          <a href="https://bioconductor.org/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">bioconductor.org ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="search-row">
+            <input id="biocQuery" class="si" placeholder="Package name or keyword (e.g. DESeq2, limma, edgeR, Seurat)..."/>
+            <button class="btn-search" onclick="searchBioconductor()">🔍 Search Bioconductor</button>
+          </div>
+          <div class="quick-chips">
+            <span>Popular:</span>
+            <button class="chip" onclick="quickBioc('DESeq2')">DESeq2</button>
+            <button class="chip" onclick="quickBioc('limma')">limma</button>
+            <button class="chip" onclick="quickBioc('edgeR')">edgeR</button>
+            <button class="chip" onclick="quickBioc('Seurat')">Seurat (scRNA)</button>
+            <button class="chip" onclick="quickBioc('clusterProfiler')">clusterProfiler</button>
+          </div>
+        </div>
+        <div class="results-area" id="results-bioconductor"></div>
+      </div>
+
+      <div class="tool-panel" id="tool-workflows-bioconda">
+        <div class="tool-info-bar">
+          <div class="tool-info-left"><span class="tool-badge-large db-badge">📦 Repository</span>
+            <div><h3 class="tool-name">Bioconda — Bioinformatics Conda Packages</h3>
+            <p class="tool-desc">8,000+ bioinformatics software packages for Conda. One-line installation for any tool.</p></div>
+          </div>
+          <a href="https://bioconda.github.io/" target="_blank" rel="noopener noreferrer" class="tool-ext-link">bioconda.github.io ↗</a>
+        </div>
+        <div class="search-card">
+          <div class="search-row">
+            <input id="biocondaQuery" class="si" placeholder="Package name (e.g. samtools, bwa, fastqc, gatk4, star)..."/>
+            <button class="btn-search" onclick="searchBioconda()">🔍 Search Bioconda</button>
+          </div>
+          <div class="quick-chips">
+            <span>Popular:</span>
+            <button class="chip" onclick="quickBioconda('samtools')">samtools</button>
+            <button class="chip" onclick="quickBioconda('bwa')">bwa</button>
+            <button class="chip" onclick="quickBioconda('fastqc')">fastqc</button>
+            <button class="chip" onclick="quickBioconda('star')">STAR</button>
+          </div>
+        </div>
+        <div class="results-area" id="results-bioconda"></div>
+      </div>
+    </div>
+
+
+  </div><!-- /content-area -->
+</main>
+
+
+
+<!-- Result Detail Modal -->
+<div class="modal-overlay" id="resultModal">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="resultModalTitle">Details</h3>
+      <button class="modal-close-btn" onclick="closeResultModal()">✕</button>
+    </div>
+    <div class="modal-body" id="resultModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn-search" onclick="closeResultModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-box">
+    <div class="dna-loader"><div class="dl-bar"></div><div class="dl-bar"></div><div class="dl-bar"></div><div class="dl-bar"></div><div class="dl-bar"></div></div>
+    <p id="loadingMsg">Loading...</p>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
